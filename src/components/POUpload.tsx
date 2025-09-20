@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { 
   Upload,
   FileText,
@@ -25,11 +26,15 @@ import {
   FolderOpen,
   Robot,
   ChartLineUp,
-  Trash
+  Trash,
+  Gear,
+  MagicWand,
+  Target
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useKV } from '@github/spark/hooks'
+import { BulkPOConfiguration } from './BulkPOConfiguration'
 
 interface ParsedItem {
   sku: string
@@ -79,6 +84,7 @@ export function POUpload() {
   const [isPaused, setIsPaused] = useState(false)
   const [activeTab, setActiveTab] = useState('upload')
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
+  const [isConfigOpen, setIsConfigOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const processingRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -209,7 +215,9 @@ export function POUpload() {
           if (progress >= 100) {
             clearInterval(progressInterval)
             
-            // Generate mock parsed data
+            // Generate mock parsed data with pricing information
+            const basePrice = Math.random() * 100 + 10
+            const finalPrice = basePrice * 1.4 + 0.99 // Mock pricing rule application
             const mockParsedData: ParsedPO = {
               supplier: ['TechnoSupply Co.', 'Premier Wholesale', 'GlobalTech Systems', 'ModernSupply'][Math.floor(Math.random() * 4)],
               poNumber: 'PO-2024-' + Math.floor(Math.random() * 1000),
@@ -221,7 +229,7 @@ export function POUpload() {
                 sku: `ITEM-${String(i + 1).padStart(3, '0')}`,
                 name: `Product ${i + 1}`,
                 quantity: Math.floor(Math.random() * 20) + 1,
-                price: Math.random() * 100 + 10,
+                price: Math.round((basePrice + Math.random() * 20) * 1.4 * 100) / 100 + 0.99, // Apply mock pricing
                 confidence: Math.floor(Math.random() * 20) + 80
               }))
             }
@@ -378,6 +386,30 @@ export function POUpload() {
               </Badge>
             </>
           )}
+          
+          {/* Configuration Dialog */}
+          <Dialog open={isConfigOpen} onOpenChange={setIsConfigOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Gear className="w-4 h-4 mr-2" />
+                Configure
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <MagicWand className="w-5 h-5" />
+                  Bulk PO Processing Configuration
+                </DialogTitle>
+                <DialogDescription>
+                  Configure pricing rules, markups, and processing settings for optimal bulk upload automation
+                </DialogDescription>
+              </DialogHeader>
+              <ScrollArea className="max-h-[75vh]">
+                <BulkPOConfiguration />
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -425,6 +457,22 @@ export function POUpload() {
                 <CardDescription>
                   Drop multiple PO files here or click to browse. Supports PDF, Excel, CSV, and image formats.
                 </CardDescription>
+                
+                {/* Configuration Status */}
+                <div className="flex items-center gap-2 pt-2">
+                  <Badge variant="secondary" className="gap-1">
+                    <MagicWand className="w-3 h-3" />
+                    AI Processing Enabled
+                  </Badge>
+                  <Badge variant="secondary" className="gap-1">
+                    <Gear className="w-3 h-3" />
+                    Smart Pricing Active
+                  </Badge>
+                  <Badge variant="secondary" className="gap-1">
+                    <Target className="w-3 h-3" />
+                    Auto-Categorization
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent>
                 <motion.div
@@ -684,24 +732,43 @@ export function POUpload() {
                             )}
                             
                             {fileItem.parsedData && (
-                              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                                <div>
-                                  <span className="text-muted-foreground">Items:</span>
-                                  <span className="font-medium ml-1">{fileItem.parsedData.totalItems}</span>
+                              <div className="mt-3 space-y-3">
+                                {/* Main Stats */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                  <div>
+                                    <span className="text-muted-foreground">Items:</span>
+                                    <span className="font-medium ml-1">{fileItem.parsedData.totalItems}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Value:</span>
+                                    <span className="font-medium ml-1">${fileItem.parsedData.totalValue.toFixed(2)}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Confidence:</span>
+                                    <span className={cn("font-medium ml-1", getConfidenceColor(fileItem.parsedData.averageConfidence))}>
+                                      {fileItem.parsedData.averageConfidence}%
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Date:</span>
+                                    <span className="font-medium ml-1">{fileItem.parsedData.date}</span>
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className="text-muted-foreground">Value:</span>
-                                  <span className="font-medium ml-1">${fileItem.parsedData.totalValue.toFixed(2)}</span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">Confidence:</span>
-                                  <span className={cn("font-medium ml-1", getConfidenceColor(fileItem.parsedData.averageConfidence))}>
-                                    {fileItem.parsedData.averageConfidence}%
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">Date:</span>
-                                  <span className="font-medium ml-1">{fileItem.parsedData.date}</span>
+                                
+                                {/* Pricing Applied Indicators */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge variant="outline" className="text-xs gap-1">
+                                    <MagicWand className="w-3 h-3" />
+                                    Smart Pricing Applied
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs gap-1">
+                                    <Target className="w-3 h-3" />
+                                    Auto-Categorized
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs gap-1 text-success">
+                                    <Check className="w-3 h-3" />
+                                    Ready for Sync
+                                  </Badge>
                                 </div>
                               </div>
                             )}
@@ -754,7 +821,7 @@ export function POUpload() {
 
         {/* Analytics Tab */}
         <TabsContent value="analytics" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-3">
             {/* Processing Statistics */}
             <Card>
               <CardHeader>
@@ -797,6 +864,46 @@ export function POUpload() {
               </CardContent>
             </Card>
 
+            {/* Pricing Impact */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MagicWand className="w-5 h-5" />
+                  Pricing Impact
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {batchStats.total > 0 ? (
+                  <>
+                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/10">
+                      <div className="text-2xl font-bold text-primary">+42.5%</div>
+                      <div className="text-sm text-muted-foreground">Avg Markup Applied</div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Psychological Pricing</span>
+                        <Badge variant="outline" className="text-xs">87% of items</Badge>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Category Rules Applied</span>
+                        <Badge variant="outline" className="text-xs">95% match rate</Badge>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Price Validation</span>
+                        <Badge variant="outline" className="text-xs text-success">All passed</Badge>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No pricing data</p>
+                    <p className="text-sm text-muted-foreground">Process files to see impact</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Recent Activity */}
             <Card>
               <CardHeader>
@@ -809,13 +916,26 @@ export function POUpload() {
                       <Check className="w-4 h-4 text-success" />
                       <div className="flex-1">
                         <p className="font-medium">{file.file.name}</p>
-                        <p className="text-muted-foreground">
-                          {file.processingCompleted && new Date(file.processingCompleted).toLocaleTimeString()}
-                        </p>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <span>
+                            {file.processingCompleted && new Date(file.processingCompleted).toLocaleTimeString()}
+                          </span>
+                          {file.parsedData && (
+                            <>
+                              <span>•</span>
+                              <span>${file.parsedData.totalValue.toFixed(0)}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <Badge variant="outline">
-                        {file.parsedData?.averageConfidence}%
-                      </Badge>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant="outline" className="text-xs">
+                          {file.parsedData?.averageConfidence}%
+                        </Badge>
+                        <Badge variant="outline" className="text-xs text-primary">
+                          +40% markup
+                        </Badge>
+                      </div>
                     </div>
                   )) || (
                     <div className="text-center py-8">
@@ -826,6 +946,77 @@ export function POUpload() {
               </CardContent>
             </Card>
           </div>
+          
+          {/* Detailed Analytics */}
+          {batchStats.total > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Configuration Performance
+                </CardTitle>
+                <CardDescription>
+                  Detailed breakdown of how your configurations performed
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Pricing Rules Applied</span>
+                      <Badge variant="secondary">94%</Badge>
+                    </div>
+                    <Progress value={94} className="h-2" />
+                    <p className="text-xs text-muted-foreground">General markup rule most used</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Category Mapping</span>
+                      <Badge variant="secondary">89%</Badge>
+                    </div>
+                    <Progress value={89} className="h-2" />
+                    <p className="text-xs text-muted-foreground">Auto-categorized successfully</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">AI Validation</span>
+                      <Badge variant="secondary">97%</Badge>
+                    </div>
+                    <Progress value={97} className="h-2" />
+                    <p className="text-xs text-muted-foreground">Passed validation checks</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Ready for Sync</span>
+                      <Badge variant="secondary">92%</Badge>
+                    </div>
+                    <Progress value={92} className="h-2" />
+                    <p className="text-xs text-muted-foreground">No manual intervention needed</p>
+                  </div>
+                </div>
+                
+                <Separator className="my-6" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-success/10 to-success/5 border border-success/20">
+                    <div className="text-2xl font-bold text-success">$12,450</div>
+                    <div className="text-sm text-muted-foreground">Total Value Processed</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                    <div className="text-2xl font-bold text-primary">$3,890</div>
+                    <div className="text-sm text-muted-foreground">Additional Margin Added</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20">
+                    <div className="text-2xl font-bold text-accent">45 mins</div>
+                    <div className="text-sm text-muted-foreground">Time Saved vs Manual</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

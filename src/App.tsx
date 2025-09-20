@@ -34,6 +34,7 @@ import { DashboardOverview } from './components/DashboardOverview'
 import { POUpload } from './components/POUpload'
 import { SyncScheduler } from './components/SyncScheduler'
 import { SettingsPanel } from './components/SettingsPanel'
+import { BulkPOConfiguration } from './components/BulkPOConfiguration'
 import { useKV } from '@github/spark/hooks'
 import { safeFormatTime } from '@/lib/utils'
 
