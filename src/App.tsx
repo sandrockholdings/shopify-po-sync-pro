@@ -37,6 +37,7 @@ import { SettingsPanel } from './components/SettingsPanel'
 import { BulkPOConfiguration } from './components/BulkPOConfiguration'
 import { QuickSync } from './components/QuickSync'
 import { NotificationsPanel } from './components/NotificationsPanel'
+import { ActiveSuppliers } from './components/ActiveSuppliers'
 import { useKV } from '@github/spark/hooks'
 import { safeFormatTime } from '@/lib/utils'
 import { notificationService } from '@/lib/notificationService'
@@ -54,6 +55,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showQuickSync, setShowQuickSync] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [showActiveSuppliers, setShowActiveSuppliers] = useState(false)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [notifications] = useKV<NotificationItem[]>('notifications', [
     {
@@ -301,113 +303,130 @@ function App() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           {/* Enhanced Tab Navigation */}
-          <div className="flex items-center justify-between">
-            <TabsList className="grid grid-cols-4 lg:w-[700px] h-12 bg-muted/30 p-1">
-              <TabsTrigger 
-                value="dashboard" 
-                className="flex items-center gap-2 h-10 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border transition-all"
-              >
-                <TrendUp className="w-4 h-4" />
-                <span className="hidden sm:inline">Analytics Dashboard</span>
-                <span className="sm:hidden">Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="upload" 
-                className="flex items-center gap-2 h-10 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border transition-all"
-              >
-                <Upload className="w-4 h-4" />
-                <span className="hidden sm:inline">PO Upload</span>
-                <span className="sm:hidden">Upload</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="scheduler" 
-                className="flex items-center gap-2 h-10 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border transition-all"
-              >
-                <Calendar className="w-4 h-4" />
-                <span className="hidden sm:inline">Auto Scheduler</span>
-                <span className="sm:hidden">Scheduler</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="settings" 
-                className="flex items-center gap-2 h-10 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border transition-all"
-              >
-                <Gear className="w-4 h-4" />
-                <span className="hidden sm:inline">Configuration</span>
-                <span className="sm:hidden">Settings</span>
-              </TabsTrigger>
-            </TabsList>
+          {!showActiveSuppliers && (
+            <div className="flex items-center justify-between">
+              <TabsList className="grid grid-cols-4 lg:w-[700px] h-12 bg-muted/30 p-1">
+                <TabsTrigger 
+                  value="dashboard" 
+                  className="flex items-center gap-2 h-10 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border transition-all"
+                >
+                  <TrendUp className="w-4 h-4" />
+                  <span className="hidden sm:inline">Analytics Dashboard</span>
+                  <span className="sm:hidden">Dashboard</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="upload" 
+                  className="flex items-center gap-2 h-10 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border transition-all"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span className="hidden sm:inline">PO Upload</span>
+                  <span className="sm:hidden">Upload</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="scheduler" 
+                  className="flex items-center gap-2 h-10 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border transition-all"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span className="hidden sm:inline">Auto Scheduler</span>
+                  <span className="sm:hidden">Scheduler</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="settings" 
+                  className="flex items-center gap-2 h-10 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border transition-all"
+                >
+                  <Gear className="w-4 h-4" />
+                  <span className="hidden sm:inline">Configuration</span>
+                  <span className="sm:hidden">Settings</span>
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Quick Actions */}
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <MagnifyingGlass className="w-4 h-4" />
-              </Button>
-              <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" onClick={() => {
-                setShowQuickSync(true)
-                // Demo notification
-                setTimeout(() => {
-                  notificationService.showSuccess(
-                    'Quick Sync Initiated', 
-                    'Syncing 3 suppliers with latest purchase orders',
-                    { category: 'sync', priority: 'medium' }
-                  )
-                }, 1000)
-              }}>
-                <Lightning className="w-4 h-4 mr-2" />
-                Quick Sync
-              </Button>
+              {/* Quick Actions */}
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm">
+                  <MagnifyingGlass className="w-4 h-4" />
+                </Button>
+                <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" onClick={() => {
+                  setShowQuickSync(true)
+                  // Demo notification
+                  setTimeout(() => {
+                    notificationService.showSuccess(
+                      'Quick Sync Initiated', 
+                      'Syncing 3 suppliers with latest purchase orders',
+                      { category: 'sync', priority: 'medium' }
+                    )
+                  }, 1000)
+                }}>
+                  <Lightning className="w-4 h-4 mr-2" />
+                  Quick Sync
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Enhanced Tab Content with Transitions */}
           <AnimatePresence mode="wait">
-            <TabsContent value="dashboard" className="space-y-6 mt-6">
-              <motion.div
-                key="dashboard"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <DashboardOverview />
-              </motion.div>
-            </TabsContent>
+            {!showActiveSuppliers ? (
+              <>
+                <TabsContent value="dashboard" className="space-y-6 mt-6">
+                  <motion.div
+                    key="dashboard"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <DashboardOverview onShowActiveSuppliers={() => setShowActiveSuppliers(true)} />
+                  </motion.div>
+                </TabsContent>
 
-            <TabsContent value="upload" className="space-y-6 mt-6">
-              <motion.div
-                key="upload"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <POUpload />
-              </motion.div>
-            </TabsContent>
+                <TabsContent value="upload" className="space-y-6 mt-6">
+                  <motion.div
+                    key="upload"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <POUpload />
+                  </motion.div>
+                </TabsContent>
 
-            <TabsContent value="scheduler" className="space-y-6 mt-6">
-              <motion.div
-                key="scheduler"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <SyncScheduler />
-              </motion.div>
-            </TabsContent>
+                <TabsContent value="scheduler" className="space-y-6 mt-6">
+                  <motion.div
+                    key="scheduler"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <SyncScheduler />
+                  </motion.div>
+                </TabsContent>
 
-            <TabsContent value="settings" className="space-y-6 mt-6">
+                <TabsContent value="settings" className="space-y-6 mt-6">
+                  <motion.div
+                    key="settings"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <SettingsPanel />
+                  </motion.div>
+                </TabsContent>
+              </>
+            ) : (
               <motion.div
-                key="settings"
+                key="active-suppliers"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
+                className="mt-6"
               >
-                <SettingsPanel />
+                <ActiveSuppliers onBack={() => setShowActiveSuppliers(false)} />
               </motion.div>
-            </TabsContent>
+            )}
           </AnimatePresence>
         </Tabs>
       </div>

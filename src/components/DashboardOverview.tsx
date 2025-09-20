@@ -65,7 +65,11 @@ const cardVariants = {
   visible: { y: 0, opacity: 1 }
 }
 
-export function DashboardOverview() {
+interface DashboardOverviewProps {
+  onShowActiveSuppliers?: () => void
+}
+
+export function DashboardOverview({ onShowActiveSuppliers }: DashboardOverviewProps) {
   const [recentPOs] = useKV<POSummary[]>('recent-pos', [
     {
       id: 'PO-2024-001',
@@ -271,7 +275,15 @@ export function DashboardOverview() {
         </motion.div>
 
         <motion.div variants={cardVariants}>
-          <Card className="relative overflow-hidden bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
+          <Card className="group relative overflow-hidden bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20 cursor-pointer hover:shadow-lg transition-all duration-200"
+                onClick={() => {
+                  onShowActiveSuppliers?.()
+                  // Show notification when accessing detailed view
+                  setTimeout(() => {
+                    // This would be handled by the notificationService
+                    console.log('Accessing Active Suppliers detailed view')
+                  }, 100)
+                }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Suppliers</CardTitle>
               <div className="p-2 rounded-lg bg-accent/10">
@@ -290,6 +302,11 @@ export function DashboardOverview() {
                 ))}
               </div>
               <div className="text-xs text-muted-foreground mt-1">6 online, 1 syncing, 1 offline</div>
+              <div className="flex items-center justify-center mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-xs text-accent font-medium flex items-center gap-1">
+                  View Details <ArrowRight className="w-3 h-3" />
+                </span>
+              </div>
             </CardContent>
             <div className="absolute top-0 right-0 w-20 h-20 bg-accent/5 rounded-full -mr-10 -mt-10" />
           </Card>
