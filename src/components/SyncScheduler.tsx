@@ -25,8 +25,8 @@ interface SyncSchedule {
   frequency: 'daily' | 'weekly' | 'monthly'
   time: string
   enabled: boolean
-  lastSync: Date
-  nextSync: Date
+  lastSync: Date | string
+  nextSync: Date | string
   status: 'success' | 'warning' | 'error' | 'pending'
   itemsUpdated: number
 }
@@ -162,9 +162,10 @@ export function SyncScheduler() {
     }
   }
 
-  const formatTimeUntilNext = (nextSync: Date) => {
+  const formatTimeUntilNext = (nextSync: Date | string) => {
     const now = new Date()
-    const diff = nextSync.getTime() - now.getTime()
+    const syncDate = new Date(nextSync) // Convert to Date if it's a string
+    const diff = syncDate.getTime() - now.getTime()
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const days = Math.floor(hours / 24)
     
@@ -228,7 +229,7 @@ export function SyncScheduler() {
                 {(() => {
                   const nextSchedule = (schedules || [])
                     .filter(s => s.enabled)
-                    .sort((a, b) => a.nextSync.getTime() - b.nextSync.getTime())[0]
+                    .sort((a, b) => new Date(a.nextSync).getTime() - new Date(b.nextSync).getTime())[0]
                   return nextSchedule ? formatTimeUntilNext(nextSchedule.nextSync) : 'None'
                 })()}
               </div>
@@ -282,7 +283,7 @@ export function SyncScheduler() {
                     <div>
                       <div className="font-medium">{schedule.supplier}</div>
                       <div className="text-sm text-muted-foreground">
-                        Last sync: {schedule.lastSync.toLocaleString()}
+                        Last sync: {new Date(schedule.lastSync).toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -357,7 +358,7 @@ export function SyncScheduler() {
             <div className="space-y-3">
               {(schedules || [])
                 .filter(s => s.enabled)
-                .sort((a, b) => a.nextSync.getTime() - b.nextSync.getTime())
+                .sort((a, b) => new Date(a.nextSync).getTime() - new Date(b.nextSync).getTime())
                 .slice(0, 5)
                 .map((schedule, index) => (
                   <div
@@ -373,7 +374,7 @@ export function SyncScheduler() {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium">
-                        {schedule.nextSync.toLocaleDateString()} at {schedule.time}
+                        {new Date(schedule.nextSync).toLocaleDateString()} at {schedule.time}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         in {formatTimeUntilNext(schedule.nextSync)}
