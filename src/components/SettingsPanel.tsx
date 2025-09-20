@@ -28,7 +28,7 @@ interface SupplierConnection {
   name: string
   type: 'api' | 'email' | 'ftp'
   status: 'connected' | 'disconnected' | 'error'
-  lastSync: Date
+  lastSync: string | Date
 }
 
 interface AISettings {
@@ -67,21 +67,21 @@ export function SettingsPanel() {
       name: 'TechnoSupply Co.',
       type: 'api',
       status: 'connected',
-      lastSync: new Date(Date.now() - 2 * 60 * 60 * 1000)
+      lastSync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
     },
     {
       id: '2',
       name: 'Global Parts Ltd.',
       type: 'email',
       status: 'connected',
-      lastSync: new Date(Date.now() - 5 * 60 * 60 * 1000)
+      lastSync: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
     },
     {
       id: '3',
       name: 'Premier Wholesale',
       type: 'ftp',
       status: 'error',
-      lastSync: new Date(Date.now() - 24 * 60 * 60 * 1000)
+      lastSync: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
     }
   ])
 

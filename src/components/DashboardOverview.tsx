@@ -45,7 +45,7 @@ interface SupplierMetrics {
   avgProcessingTime: number
   totalPOs: number
   trend: 'up' | 'down' | 'stable'
-  lastSync: Date
+  lastSync: string | Date
   status: 'online' | 'offline' | 'syncing'
 }
 
@@ -74,7 +74,7 @@ export function DashboardOverview() {
       itemCount: 24,
       value: 15420,
       priority: 'high',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
     },
     {
       id: 'PO-2024-002', 
@@ -84,7 +84,7 @@ export function DashboardOverview() {
       itemCount: 12,
       value: 8750,
       priority: 'medium',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000)
+      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
     },
     {
       id: 'PO-2024-003',
@@ -94,7 +94,7 @@ export function DashboardOverview() {
       itemCount: 8,
       value: 5200,
       priority: 'low',
-      timestamp: new Date(Date.now() - 10 * 60 * 1000)
+      timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString()
     },
     {
       id: 'PO-2024-004',
@@ -104,7 +104,7 @@ export function DashboardOverview() {
       itemCount: 18,
       value: 12300,
       priority: 'high',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000)
+      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString()
     }
   ])
 
@@ -115,7 +115,7 @@ export function DashboardOverview() {
       avgProcessingTime: 2.3,
       totalPOs: 156,
       trend: 'up',
-      lastSync: new Date(Date.now() - 5 * 60 * 1000),
+      lastSync: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
       status: 'online'
     },
     {
@@ -124,7 +124,7 @@ export function DashboardOverview() {
       avgProcessingTime: 3.1,
       totalPOs: 98,
       trend: 'stable',
-      lastSync: new Date(Date.now() - 15 * 60 * 1000),
+      lastSync: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
       status: 'syncing'
     },
     {
@@ -133,7 +133,7 @@ export function DashboardOverview() {
       avgProcessingTime: 4.2,
       totalPOs: 67,
       trend: 'down',
-      lastSync: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      lastSync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
       status: 'offline'
     }
   ])

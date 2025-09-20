@@ -41,7 +41,7 @@ interface NotificationItem {
   type: 'success' | 'warning' | 'info' | 'error'
   title: string
   message: string
-  timestamp: Date
+  timestamp: string | Date
   read: boolean
 }
 
@@ -53,7 +53,7 @@ function App() {
       type: 'success',
       title: 'PO Processed Successfully',
       message: 'TechnoSupply Co. PO-2024-001 processed with 95% confidence',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
       read: false
     },
     {
@@ -61,7 +61,7 @@ function App() {
       type: 'warning',
       title: 'Low Confidence Detection',
       message: 'Premier Wholesale PO requires manual review',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000),
+      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
       read: false
     },
     {
@@ -69,7 +69,7 @@ function App() {
       type: 'info',
       title: 'Sync Scheduled',
       message: 'Next supplier sync in 2 hours',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
+      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
       read: true
     }
   ])
@@ -128,7 +128,7 @@ function App() {
               {/* Live Clock */}
               <Card className="px-3 py-1.5 bg-muted/50">
                 <div className="text-sm font-mono">
-                  {currentTime.toLocaleTimeString()}
+                  {currentTime?.toLocaleTimeString() || '-- : -- : --'}
                 </div>
               </Card>
 

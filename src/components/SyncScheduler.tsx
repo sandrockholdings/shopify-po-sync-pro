@@ -55,8 +55,8 @@ export function SyncScheduler() {
       frequency: 'daily',
       time: '09:00',
       enabled: true,
-      lastSync: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-      nextSync: new Date(Date.now() + 20 * 60 * 60 * 1000), // 20 hours from now
+      lastSync: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+      nextSync: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(), // 20 hours from now
       status: 'success',
       itemsUpdated: 147
     },
@@ -66,8 +66,8 @@ export function SyncScheduler() {
       frequency: 'weekly',
       time: '14:30',
       enabled: true,
-      lastSync: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      nextSync: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+      lastSync: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+      nextSync: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
       status: 'warning',
       itemsUpdated: 23
     },
@@ -77,8 +77,8 @@ export function SyncScheduler() {
       frequency: 'daily',
       time: '16:00',
       enabled: false,
-      lastSync: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      nextSync: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours from now
+      lastSync: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+      nextSync: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // 8 hours from now
       status: 'error',
       itemsUpdated: 0
     }
@@ -117,8 +117,8 @@ export function SyncScheduler() {
       frequency: config.frequency === 'hourly' ? 'daily' : config.frequency, // Map hourly to daily for now
       time: config.time,
       enabled: config.enabled,
-      lastSync: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
-      nextSync: new Date(Date.now() + (config.frequency === 'hourly' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000)),
+      lastSync: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+      nextSync: new Date(Date.now() + (config.frequency === 'hourly' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000)).toISOString(),
       status: 'pending',
       itemsUpdated: 0
     }
