@@ -36,6 +36,7 @@ import { SyncScheduler } from './components/SyncScheduler'
 import { SettingsPanel } from './components/SettingsPanel'
 import { BulkPOConfiguration } from './components/BulkPOConfiguration'
 import { QuickSync } from './components/QuickSync'
+import { NotificationsPanel } from './components/NotificationsPanel'
 import { useKV } from '@github/spark/hooks'
 import { safeFormatTime } from '@/lib/utils'
 
@@ -51,6 +52,8 @@ interface NotificationItem {
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showQuickSync, setShowQuickSync] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [notifications] = useKV<NotificationItem[]>('notifications', [
     {
       id: '1',
@@ -78,7 +81,7 @@ function App() {
     }
   ])
 
-  const unreadNotifications = notifications?.filter(n => !n.read).length || 0
+  // This will be managed by the NotificationsPanel component
 
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
   useEffect(() => {
@@ -159,7 +162,12 @@ function App() {
               </div>
 
               {/* Notifications */}
-              <Button variant="outline" size="sm" className="relative">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="relative"
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
                 <Bell className="w-4 h-4" />
                 {unreadNotifications > 0 && (
                   <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs">
@@ -348,6 +356,13 @@ function App() {
           </AnimatePresence>
         </Tabs>
       </div>
+
+      {/* Notifications Panel */}
+      <NotificationsPanel
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        onNotificationUpdate={setUnreadNotifications}
+      />
 
       {/* Quick Sync Modal */}
       <AnimatePresence>
