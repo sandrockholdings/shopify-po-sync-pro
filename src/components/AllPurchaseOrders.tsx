@@ -34,6 +34,7 @@ import {
   ArrowsClockwise
 } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
+import { PurchaseOrderDetails } from './PurchaseOrderDetails'
 
 interface PurchaseOrderItem {
   id: string
@@ -72,6 +73,7 @@ interface AllPurchaseOrdersProps {
 }
 
 export function AllPurchaseOrders({ onBack }: AllPurchaseOrdersProps) {
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
   const [purchaseOrders] = useKV<PurchaseOrder[]>('all-purchase-orders', [
     {
       id: '1',
@@ -146,8 +148,6 @@ export function AllPurchaseOrders({ onBack }: AllPurchaseOrdersProps) {
   const [supplierFilter, setSupplierFilter] = useState<string>('all')
   const [sortField, setSortField] = useState<string>('uploadDate')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
-  const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null)
-  const [showDetails, setShowDetails] = useState(false)
 
   // Filter and sort purchase orders
   const filteredAndSortedPOs = (purchaseOrders || [])
@@ -242,6 +242,16 @@ export function AllPurchaseOrders({ onBack }: AllPurchaseOrdersProps) {
   }
 
   const stats = getTotalStats()
+
+  // Show detailed view if an order is selected
+  if (selectedOrderId) {
+    return (
+      <PurchaseOrderDetails 
+        orderId={selectedOrderId}
+        onBack={() => setSelectedOrderId(null)}
+      />
+    )
+  }
 
   return (
     <motion.div
@@ -412,7 +422,11 @@ export function AllPurchaseOrders({ onBack }: AllPurchaseOrdersProps) {
               </TableHeader>
               <TableBody>
                 {filteredAndSortedPOs.map((po) => (
-                  <TableRow key={po.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow 
+                    key={po.id} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => setSelectedOrderId(po.id)}
+                  >
                     <TableCell className="font-medium">{po.poNumber}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -444,9 +458,9 @@ export function AllPurchaseOrders({ onBack }: AllPurchaseOrdersProps) {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => {
-                          setSelectedPO(po)
-                          setShowDetails(true)
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedOrderId(po.id)
                         }}
                       >
                         <Eye className="w-4 h-4" />
@@ -459,182 +473,6 @@ export function AllPurchaseOrders({ onBack }: AllPurchaseOrdersProps) {
           </div>
         </CardContent>
       </Card>
-
-      {/* Purchase Order Details Modal */}
-      <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              {selectedPO?.poNumber} - {selectedPO?.supplier}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedPO && (
-            <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="items">Items ({selectedPO.totalItems})</TabsTrigger>
-                <TabsTrigger value="ai-analysis">AI Analysis</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="overview" className="space-y-6">
-                {/* Basic Information */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="text-2xl font-bold">{selectedPO.totalItems}</div>
-                      <div className="text-xs text-muted-foreground">Total Items</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="text-2xl font-bold">{formatCurrency(selectedPO.totalValue)}</div>
-                      <div className="text-xs text-muted-foreground">Total Value</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="text-2xl font-bold">{selectedPO.confidence}%</div>
-                      <div className="text-xs text-muted-foreground">AI Confidence</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="text-2xl font-bold">{formatFileSize(selectedPO.fileSize)}</div>
-                      <div className="text-xs text-muted-foreground">File Size</div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* File Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>File Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium">Filename</label>
-                        <div className="text-sm text-muted-foreground">{selectedPO.fileName}</div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Status</label>
-                        <div>{getStatusBadge(selectedPO.status)}</div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Upload Date</label>
-                        <div className="text-sm text-muted-foreground">{formatDate(selectedPO.uploadDate)}</div>
-                      </div>
-                      {selectedPO.processedDate && (
-                        <div>
-                          <label className="text-sm font-medium">Processed Date</label>
-                          <div className="text-sm text-muted-foreground">{formatDate(selectedPO.processedDate)}</div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="items" className="space-y-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>SKU</TableHead>
-                      <TableHead>Item Name</TableHead>
-                      <TableHead className="text-right">Quantity</TableHead>
-                      <TableHead className="text-right">Unit Cost</TableHead>
-                      <TableHead className="text-right">Total Cost</TableHead>
-                      <TableHead className="text-right">Confidence</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedPO.items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-mono">{item.sku}</TableCell>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(item.unitCost)}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(item.totalCost)}</TableCell>
-                        <TableCell className="text-right">
-                          <span className={`font-medium ${
-                            item.confidence >= 90 ? 'text-success' :
-                            item.confidence >= 70 ? 'text-warning' : 'text-destructive'
-                          }`}>
-                            {item.confidence}%
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            item.status === 'matched' ? 'default' :
-                            item.status === 'updated' ? 'secondary' :
-                            item.status === 'new' ? 'outline' : 'destructive'
-                          }>
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TabsContent>
-
-              <TabsContent value="ai-analysis" className="space-y-4">
-                {selectedPO.aiAnalysis && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Robot className="w-4 h-4 text-primary" />
-                          <div>
-                            <div className="text-2xl font-bold">{selectedPO.aiAnalysis.detectedFields}</div>
-                            <div className="text-xs text-muted-foreground">Detected Fields</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                          <ChartLineUp className="w-4 h-4 text-success" />
-                          <div>
-                            <div className="text-2xl font-bold">{selectedPO.aiAnalysis.extractionAccuracy}%</div>
-                            <div className="text-xs text-muted-foreground">Accuracy</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Lightning className="w-4 h-4 text-accent" />
-                          <div>
-                            <div className="text-2xl font-bold">{selectedPO.aiAnalysis.suggestedMappings}</div>
-                            <div className="text-xs text-muted-foreground">Mappings</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Warning className="w-4 h-4 text-warning" />
-                          <div>
-                            <div className="text-2xl font-bold">{selectedPO.aiAnalysis.flaggedItems}</div>
-                            <div className="text-xs text-muted-foreground">Flagged Items</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          )}
-        </DialogContent>
-      </Dialog>
     </motion.div>
   )
 }

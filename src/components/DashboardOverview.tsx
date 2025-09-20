@@ -68,9 +68,10 @@ const cardVariants = {
 interface DashboardOverviewProps {
   onShowActiveSuppliers?: () => void
   onShowAllPurchaseOrders?: () => void
+  onShowPurchaseOrderDetails?: (orderId: string) => void
 }
 
-export function DashboardOverview({ onShowActiveSuppliers, onShowAllPurchaseOrders }: DashboardOverviewProps) {
+export function DashboardOverview({ onShowActiveSuppliers, onShowAllPurchaseOrders, onShowPurchaseOrderDetails }: DashboardOverviewProps) {
   const [recentPOs] = useKV<POSummary[]>('recent-pos', [
     {
       id: 'PO-2024-001',
@@ -372,6 +373,7 @@ export function DashboardOverview({ onShowActiveSuppliers, onShowAllPurchaseOrde
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: index * 0.1 }}
                     className="group flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/30 hover:border-muted-foreground/20 transition-all cursor-pointer"
+                    onClick={() => onShowPurchaseOrderDetails?.(po.id)}
                   >
                     <div className="flex items-center gap-4">
                       <div className="relative">
