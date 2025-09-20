@@ -20,7 +20,7 @@ interface POSummary {
   status: 'processed' | 'pending' | 'error'
   confidence: number
   itemCount: number
-  timestamp: Date
+  timestamp: string | Date
 }
 
 const containerVariants = {
@@ -205,7 +205,7 @@ export function DashboardOverview() {
                     <div className="text-right">
                       <div className="text-sm font-medium">{po.itemCount} items</div>
                       <div className="text-xs text-muted-foreground">
-                        {po.timestamp.toLocaleDateString()}
+                        {new Date(po.timestamp).toLocaleDateString()}
                       </div>
                     </div>
                     {getStatusBadge(po.status, po.confidence)}
