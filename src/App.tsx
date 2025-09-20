@@ -35,6 +35,7 @@ import { POUpload } from './components/POUpload'
 import { SyncScheduler } from './components/SyncScheduler'
 import { SettingsPanel } from './components/SettingsPanel'
 import { useKV } from '@github/spark/hooks'
+import { safeFormatTime } from '@/lib/utils'
 
 interface NotificationItem {
   id: string
@@ -76,9 +77,19 @@ function App() {
 
   const unreadNotifications = notifications?.filter(n => !n.read).length || 0
 
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    // Set initial time safely
+    setCurrentTime(new Date())
+    
+    const timer = setInterval(() => {
+      try {
+        setCurrentTime(new Date())
+      } catch {
+        // If Date constructor fails for some reason, keep previous time
+      }
+    }, 1000)
+    
     return () => clearInterval(timer)
   }, [])
 
@@ -128,7 +139,7 @@ function App() {
               {/* Live Clock */}
               <Card className="px-3 py-1.5 bg-muted/50">
                 <div className="text-sm font-mono">
-                  {currentTime?.toLocaleTimeString() || '-- : -- : --'}
+                  {safeFormatTime(currentTime)}
                 </div>
               </Card>
 

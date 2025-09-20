@@ -18,6 +18,7 @@ import {
 import { useKV } from '@github/spark/hooks'
 import { toast } from 'sonner'
 import { ScheduleConfigDialog } from './ScheduleConfigDialog'
+import { safeFormatDateTime, safeFormatDate } from '@/lib/utils'
 
 interface SyncSchedule {
   id: string
@@ -165,22 +166,26 @@ export function SyncScheduler() {
   const formatTimeUntilNext = (nextSync: Date | string) => {
     if (!nextSync) return 'Not scheduled'
     
-    const now = new Date()
-    const syncDate = new Date(nextSync) // Convert to Date if it's a string
-    
-    // Check if the date is valid
-    if (isNaN(syncDate.getTime())) return 'Invalid date'
-    
-    const diff = syncDate.getTime() - now.getTime()
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const days = Math.floor(hours / 24)
-    
-    if (days > 0) {
-      return `${days}d ${hours % 24}h`
-    } else if (hours > 0) {
-      return `${hours}h`
-    } else {
-      return 'Soon'
+    try {
+      const now = new Date()
+      const syncDate = new Date(nextSync) // Convert to Date if it's a string
+      
+      // Check if the date is valid
+      if (isNaN(syncDate.getTime())) return 'Invalid date'
+      
+      const diff = syncDate.getTime() - now.getTime()
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const days = Math.floor(hours / 24)
+      
+      if (days > 0) {
+        return `${days}d ${hours % 24}h`
+      } else if (hours > 0) {
+        return `${hours}h`
+      } else {
+        return 'Soon'
+      }
+    } catch {
+      return 'Invalid date'
     }
   }
 
@@ -289,7 +294,7 @@ export function SyncScheduler() {
                     <div>
                       <div className="font-medium">{schedule.supplier}</div>
                       <div className="text-sm text-muted-foreground">
-                        Last sync: {schedule.lastSync ? new Date(schedule.lastSync).toLocaleString() : 'Never'}
+                        Last sync: {safeFormatDateTime(schedule.lastSync)}
                       </div>
                     </div>
                   </div>
@@ -380,7 +385,7 @@ export function SyncScheduler() {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium">
-                        {schedule.nextSync ? new Date(schedule.nextSync).toLocaleDateString() : 'Not scheduled'} at {schedule.time}
+                        {safeFormatDate(schedule.nextSync)} at {schedule.time}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         in {formatTimeUntilNext(schedule.nextSync)}

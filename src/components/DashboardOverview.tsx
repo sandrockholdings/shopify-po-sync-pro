@@ -27,6 +27,7 @@ import {
   WarningCircle
 } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
+import { safeFormatDate, safeFormatTime } from '@/lib/utils'
 
 interface POSummary {
   id: string
@@ -387,13 +388,10 @@ export function DashboardOverview() {
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <div className="text-sm font-medium">
-                          {po.timestamp ? new Date(po.timestamp).toLocaleDateString() : 'N/A'}
+                          {safeFormatDate(po.timestamp)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {po.timestamp ? new Date(po.timestamp).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          }) : 'N/A'}
+                          {safeFormatTime(po.timestamp)}
                         </div>
                       </div>
                       <div className="flex flex-col gap-2">
