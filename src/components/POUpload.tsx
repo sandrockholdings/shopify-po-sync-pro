@@ -395,7 +395,7 @@ export function POUpload() {
                 Configure
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+            <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <MagicWand className="w-5 h-5" />

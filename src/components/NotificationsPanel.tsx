@@ -213,7 +213,7 @@ export function NotificationsPanel({ isOpen, onClose, onNotificationUpdate, onOp
 
           {/* Notifications Panel */}
           <motion.div
-            className="fixed top-20 right-6 z-50 w-96 max-h-[600px] bg-card border border-border rounded-lg shadow-2xl"
+            className="fixed top-20 right-6 z-50 w-[480px] max-h-[600px] bg-card border border-border rounded-lg shadow-2xl"
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}

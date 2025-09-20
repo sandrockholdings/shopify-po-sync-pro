@@ -282,7 +282,7 @@ export function QuickSync({ onClose }: { onClose: () => void }) {
       exit={{ opacity: 0, scale: 0.95 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
     >
-      <Card className="w-full max-w-4xl max-h-[90vh] mx-4 shadow-2xl">
+      <Card className="w-full max-w-7xl max-h-[90vh] mx-4 shadow-2xl">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

@@ -346,7 +346,7 @@ export function ActiveSuppliers({ onBack }: ActiveSuppliersProps) {
                 Add Supplier
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Supplier</DialogTitle>
                 <DialogDescription>
@@ -516,7 +516,7 @@ export function ActiveSuppliers({ onBack }: ActiveSuppliersProps) {
                         <Settings className="w-4 h-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Configure {supplier.name}</DialogTitle>
                         <DialogDescription>
@@ -582,7 +582,7 @@ export function ActiveSuppliers({ onBack }: ActiveSuppliersProps) {
 
       {/* Supplier Detail Modal */}
       <Dialog open={!!selectedSupplier} onOpenChange={() => setSelectedSupplier(null)}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
           {selectedSupplier && (
             <SupplierDetailView supplier={selectedSupplier} />
           )}
