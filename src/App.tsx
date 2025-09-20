@@ -40,6 +40,7 @@ import { NotificationsPanel } from './components/NotificationsPanel'
 import { ActiveSuppliers } from './components/ActiveSuppliers'
 import { AllPurchaseOrders } from './components/AllPurchaseOrders'
 import { PurchaseOrderDetails } from './components/PurchaseOrderDetails'
+import { AIChatbot } from './components/AIChatbot'
 import { useKV } from '@github/spark/hooks'
 import { safeFormatTime } from '@/lib/utils'
 import { notificationService } from '@/lib/notificationService'
@@ -61,6 +62,8 @@ function App() {
   const [showAllPurchaseOrders, setShowAllPurchaseOrders] = useState(false)
   const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState<string | null>(null)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [showAIChatbot, setShowAIChatbot] = useState(false)
+  const [isAIChatbotMinimized, setIsAIChatbotMinimized] = useState(false)
   const [notifications] = useKV<NotificationItem[]>('notifications', [
     {
       id: '1',
@@ -481,6 +484,18 @@ function App() {
           <QuickSync onClose={() => setShowQuickSync(false)} />
         )}
       </AnimatePresence>
+
+      {/* AI Chatbot */}
+      <AIChatbot
+        isOpen={showAIChatbot}
+        isMinimized={isAIChatbotMinimized}
+        onToggle={() => setShowAIChatbot(!showAIChatbot)}
+        onMinimize={() => setIsAIChatbotMinimized(true)}
+        onClose={() => {
+          setShowAIChatbot(false)
+          setIsAIChatbotMinimized(false)
+        }}
+      />
     </div>
   )
 }
