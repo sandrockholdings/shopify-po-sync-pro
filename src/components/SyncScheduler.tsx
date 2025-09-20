@@ -17,6 +17,7 @@ import {
 } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import { toast } from 'sonner'
+import { ScheduleConfigDialog } from './ScheduleConfigDialog'
 
 interface SyncSchedule {
   id: string
@@ -46,6 +47,7 @@ const cardVariants = {
 }
 
 export function SyncScheduler() {
+  const [showConfigDialog, setShowConfigDialog] = useState(false)
   const [schedules, setSchedules] = useKV<SyncSchedule[]>('sync-schedules', [
     {
       id: '1',
@@ -106,6 +108,23 @@ export function SyncScheduler() {
 
   const runSyncNow = (id: string, supplier: string) => {
     toast.success(`Manual sync started for ${supplier}`)
+  }
+
+  const handleCreateSchedule = (config: any) => {
+    const newSchedule: SyncSchedule = {
+      id: Date.now().toString(),
+      supplier: config.supplierName,
+      frequency: config.frequency === 'hourly' ? 'daily' : config.frequency, // Map hourly to daily for now
+      time: config.time,
+      enabled: config.enabled,
+      lastSync: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
+      nextSync: new Date(Date.now() + (config.frequency === 'hourly' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000)),
+      status: 'pending',
+      itemsUpdated: 0
+    }
+    
+    setSchedules((current) => [...(current || []), newSchedule])
+    toast.success(`Schedule created for ${config.supplierName}`)
   }
 
   const getStatusBadge = (status: string) => {
@@ -173,7 +192,7 @@ export function SyncScheduler() {
             Manage automated supplier synchronization schedules
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowConfigDialog(true)}>
           <Calendar className="w-4 h-4 mr-2" />
           Add New Schedule
         </Button>
@@ -372,6 +391,13 @@ export function SyncScheduler() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Schedule Configuration Dialog */}
+      <ScheduleConfigDialog
+        open={showConfigDialog}
+        onOpenChange={setShowConfigDialog}
+        onSave={handleCreateSchedule}
+      />
     </motion.div>
   )
 }
