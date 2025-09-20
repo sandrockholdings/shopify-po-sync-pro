@@ -35,6 +35,7 @@ import { POUpload } from './components/POUpload'
 import { SyncScheduler } from './components/SyncScheduler'
 import { SettingsPanel } from './components/SettingsPanel'
 import { BulkPOConfiguration } from './components/BulkPOConfiguration'
+import { QuickSync } from './components/QuickSync'
 import { useKV } from '@github/spark/hooks'
 import { safeFormatTime } from '@/lib/utils'
 
@@ -49,6 +50,7 @@ interface NotificationItem {
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [showQuickSync, setShowQuickSync] = useState(false)
   const [notifications] = useKV<NotificationItem[]>('notifications', [
     {
       id: '1',
@@ -287,7 +289,7 @@ function App() {
               <Button variant="outline" size="sm">
                 <MagnifyingGlass className="w-4 h-4" />
               </Button>
-              <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
+              <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" onClick={() => setShowQuickSync(true)}>
                 <Lightning className="w-4 h-4 mr-2" />
                 Quick Sync
               </Button>
@@ -346,6 +348,13 @@ function App() {
           </AnimatePresence>
         </Tabs>
       </div>
+
+      {/* Quick Sync Modal */}
+      <AnimatePresence>
+        {showQuickSync && (
+          <QuickSync onClose={() => setShowQuickSync(false)} />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
