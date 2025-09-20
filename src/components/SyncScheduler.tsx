@@ -163,8 +163,14 @@ export function SyncScheduler() {
   }
 
   const formatTimeUntilNext = (nextSync: Date | string) => {
+    if (!nextSync) return 'Not scheduled'
+    
     const now = new Date()
     const syncDate = new Date(nextSync) // Convert to Date if it's a string
+    
+    // Check if the date is valid
+    if (isNaN(syncDate.getTime())) return 'Invalid date'
+    
     const diff = syncDate.getTime() - now.getTime()
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const days = Math.floor(hours / 24)
@@ -283,7 +289,7 @@ export function SyncScheduler() {
                     <div>
                       <div className="font-medium">{schedule.supplier}</div>
                       <div className="text-sm text-muted-foreground">
-                        Last sync: {new Date(schedule.lastSync).toLocaleString()}
+                        Last sync: {schedule.lastSync ? new Date(schedule.lastSync).toLocaleString() : 'Never'}
                       </div>
                     </div>
                   </div>
@@ -374,7 +380,7 @@ export function SyncScheduler() {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium">
-                        {new Date(schedule.nextSync).toLocaleDateString()} at {schedule.time}
+                        {schedule.nextSync ? new Date(schedule.nextSync).toLocaleDateString() : 'Not scheduled'} at {schedule.time}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         in {formatTimeUntilNext(schedule.nextSync)}

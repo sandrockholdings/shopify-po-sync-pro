@@ -224,7 +224,7 @@ export function SettingsPanel() {
                         <div>
                           <div className="font-medium">{supplier.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {supplier.type.toUpperCase()} • Last sync: {supplier.lastSync.toLocaleString()}
+                            {supplier.type.toUpperCase()} • Last sync: {supplier.lastSync ? new Date(supplier.lastSync).toLocaleString() : 'Never'}
                           </div>
                         </div>
                       </div>

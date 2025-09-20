@@ -387,13 +387,13 @@ export function DashboardOverview() {
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <div className="text-sm font-medium">
-                          {new Date(po.timestamp).toLocaleDateString()}
+                          {po.timestamp ? new Date(po.timestamp).toLocaleDateString() : 'N/A'}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {new Date(po.timestamp).toLocaleTimeString([], { 
+                          {po.timestamp ? new Date(po.timestamp).toLocaleTimeString([], { 
                             hour: '2-digit', 
                             minute: '2-digit' 
-                          })}
+                          }) : 'N/A'}
                         </div>
                       </div>
                       <div className="flex flex-col gap-2">
