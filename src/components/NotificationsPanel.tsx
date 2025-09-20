@@ -40,9 +40,10 @@ interface NotificationsPanelProps {
   isOpen: boolean
   onClose: () => void
   onNotificationUpdate: (count: number) => void
+  onOpenSettings?: () => void
 }
 
-export function NotificationsPanel({ isOpen, onClose, onNotificationUpdate }: NotificationsPanelProps) {
+export function NotificationsPanel({ isOpen, onClose, onNotificationUpdate, onOpenSettings }: NotificationsPanelProps) {
   const [notifications, setNotifications] = useKV<NotificationItem[]>('notifications', [
     {
       id: '1',
@@ -406,6 +407,10 @@ export function NotificationsPanel({ isOpen, onClose, onNotificationUpdate }: No
                   variant="ghost"
                   size="sm"
                   className="w-full h-8 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    onClose()
+                    onOpenSettings?.()
+                  }}
                 >
                   <Gear className="w-3 h-3 mr-1" />
                   Notification Settings

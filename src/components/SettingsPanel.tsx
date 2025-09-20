@@ -18,11 +18,13 @@ import {
   Check,
   Warning,
   Plus,
-  Trash
+  Trash,
+  Bell
 } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import { toast } from 'sonner'
 import { safeFormatDateTime } from '@/lib/utils'
+import { NotificationSettings } from './NotificationSettings'
 
 interface SupplierConnection {
   id: string
@@ -174,7 +176,7 @@ export function SettingsPanel() {
       </div>
 
       <Tabs defaultValue="suppliers" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="suppliers" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Suppliers
@@ -186,6 +188,10 @@ export function SettingsPanel() {
           <TabsTrigger value="mapping" className="flex items-center gap-2">
             <Link className="w-4 h-4" />
             Mapping
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="w-4 h-4" />
+            Notifications
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
@@ -423,6 +429,13 @@ export function SettingsPanel() {
                 </div>
               </CardContent>
             </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications" className="space-y-6">
+          <motion.div variants={cardVariants}>
+            <NotificationSettings />
           </motion.div>
         </TabsContent>
 

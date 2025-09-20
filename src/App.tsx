@@ -39,6 +39,7 @@ import { QuickSync } from './components/QuickSync'
 import { NotificationsPanel } from './components/NotificationsPanel'
 import { useKV } from '@github/spark/hooks'
 import { safeFormatTime } from '@/lib/utils'
+import { notificationService } from '@/lib/notificationService'
 
 interface NotificationItem {
   id: string
@@ -80,6 +81,50 @@ function App() {
       read: true
     }
   ])
+
+  // Initialize notification service with settings
+  const [notificationSettings] = useKV<any>('notification-settings', {
+    enabled: true,
+    desktopEnabled: false,
+    soundEnabled: true,
+    soundVolume: 70,
+    successSound: 'chime',
+    warningSound: 'bell',
+    errorSound: 'alert',
+    infoSound: 'soft',
+    types: {
+      success: true,
+      warning: true,
+      error: true,
+      info: true
+    },
+    doNotDisturbEnabled: false,
+    doNotDisturbStart: '22:00',
+    doNotDisturbEnd: '08:00',
+    autoDismissEnabled: true,
+    autoDismissDelay: 5000
+  })
+
+  // Update notification service when settings change
+  useEffect(() => {
+    if (notificationSettings) {
+      notificationService.updateSettings(notificationSettings)
+    }
+  }, [notificationSettings])
+
+  // Demo: Add some notifications after app loads
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Demo notifications to showcase the system
+      notificationService.showInfo(
+        'Welcome to PO Manager Pro',
+        'Your AI-powered inventory management system is ready. Configure your notification preferences in Settings.',
+        { category: 'system', priority: 'low' }
+      )
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   // This will be managed by the NotificationsPanel component
 
@@ -297,7 +342,17 @@ function App() {
               <Button variant="outline" size="sm">
                 <MagnifyingGlass className="w-4 h-4" />
               </Button>
-              <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" onClick={() => setShowQuickSync(true)}>
+              <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" onClick={() => {
+                setShowQuickSync(true)
+                // Demo notification
+                setTimeout(() => {
+                  notificationService.showSuccess(
+                    'Quick Sync Initiated', 
+                    'Syncing 3 suppliers with latest purchase orders',
+                    { category: 'sync', priority: 'medium' }
+                  )
+                }, 1000)
+              }}>
                 <Lightning className="w-4 h-4 mr-2" />
                 Quick Sync
               </Button>
@@ -362,6 +417,10 @@ function App() {
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
         onNotificationUpdate={setUnreadNotifications}
+        onOpenSettings={() => {
+          setActiveTab('settings')
+          // In the future, could also set a specific tab within settings
+        }}
       />
 
       {/* Quick Sync Modal */}
