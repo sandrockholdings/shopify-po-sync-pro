@@ -29,7 +29,7 @@ interface SupplierConnection {
   name: string
   type: 'api' | 'email' | 'ftp'
   status: 'connected' | 'disconnected' | 'error'
-  lastSync: string | Date
+  lastSync: string // ISO string timestamp
 }
 
 interface AISettings {

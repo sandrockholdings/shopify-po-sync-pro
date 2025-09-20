@@ -35,7 +35,7 @@ interface POSummary {
   status: 'processed' | 'pending' | 'error'
   confidence: number
   itemCount: number
-  timestamp: string | Date
+  timestamp: string // ISO string timestamp
   value: number
   priority: 'low' | 'medium' | 'high'
 }
@@ -46,7 +46,7 @@ interface SupplierMetrics {
   avgProcessingTime: number
   totalPOs: number
   trend: 'up' | 'down' | 'stable'
-  lastSync: string | Date
+  lastSync: string // ISO string timestamp
   status: 'online' | 'offline' | 'syncing'
 }
 
@@ -380,7 +380,7 @@ export function DashboardOverview() {
                         </div>
                         <div className="text-sm text-muted-foreground">{po.supplier}</div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          ${po.value.toLocaleString()} • {po.itemCount} items
+                          ${po.value?.toLocaleString?.() || '0'} • {po.itemCount || 0} items
                         </div>
                       </div>
                     </div>

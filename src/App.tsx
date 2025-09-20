@@ -42,7 +42,7 @@ interface NotificationItem {
   type: 'success' | 'warning' | 'info' | 'error'
   title: string
   message: string
-  timestamp: string | Date
+  timestamp: string // ISO string timestamp
   read: boolean
 }
 

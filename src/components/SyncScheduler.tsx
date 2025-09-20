@@ -26,8 +26,8 @@ interface SyncSchedule {
   frequency: 'daily' | 'weekly' | 'monthly'
   time: string
   enabled: boolean
-  lastSync: Date | string
-  nextSync: Date | string
+  lastSync: string // ISO string timestamp
+  nextSync: string // ISO string timestamp
   status: 'success' | 'warning' | 'error' | 'pending'
   itemsUpdated: number
 }
@@ -112,20 +112,29 @@ export function SyncScheduler() {
   }
 
   const handleCreateSchedule = (config: any) => {
-    const newSchedule: SyncSchedule = {
-      id: Date.now().toString(),
-      supplier: config.supplierName,
-      frequency: config.frequency === 'hourly' ? 'daily' : config.frequency, // Map hourly to daily for now
-      time: config.time,
-      enabled: config.enabled,
-      lastSync: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
-      nextSync: new Date(Date.now() + (config.frequency === 'hourly' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000)).toISOString(),
-      status: 'pending',
-      itemsUpdated: 0
+    try {
+      const now = Date.now()
+      const oneDayMs = 24 * 60 * 60 * 1000
+      const oneHourMs = 60 * 60 * 1000
+      
+      const newSchedule: SyncSchedule = {
+        id: now.toString(),
+        supplier: config.supplierName || 'Unknown Supplier',
+        frequency: config.frequency === 'hourly' ? 'daily' : config.frequency, // Map hourly to daily for now
+        time: config.time || '09:00',
+        enabled: config.enabled ?? true,
+        lastSync: new Date(now - oneDayMs).toISOString(), // Yesterday
+        nextSync: new Date(now + (config.frequency === 'hourly' ? oneHourMs : oneDayMs)).toISOString(),
+        status: 'pending',
+        itemsUpdated: 0
+      }
+      
+      setSchedules((current) => [...(current || []), newSchedule])
+      toast.success(`Schedule created for ${config.supplierName || 'supplier'}`)
+    } catch (error) {
+      console.error('Error creating schedule:', error)
+      toast.error('Failed to create schedule. Please try again.')
     }
-    
-    setSchedules((current) => [...(current || []), newSchedule])
-    toast.success(`Schedule created for ${config.supplierName}`)
   }
 
   const getStatusBadge = (status: string) => {
@@ -163,17 +172,24 @@ export function SyncScheduler() {
     }
   }
 
-  const formatTimeUntilNext = (nextSync: Date | string) => {
+  const formatTimeUntilNext = (nextSync: string | null | undefined) => {
     if (!nextSync) return 'Not scheduled'
     
     try {
       const now = new Date()
-      const syncDate = new Date(nextSync) // Convert to Date if it's a string
+      const syncDate = new Date(nextSync)
       
       // Check if the date is valid
       if (isNaN(syncDate.getTime())) return 'Invalid date'
       
       const diff = syncDate.getTime() - now.getTime()
+      
+      // If the sync time has passed, show overdue
+      if (diff < 0) {
+        const overdueDays = Math.abs(Math.floor(diff / (1000 * 60 * 60 * 24)))
+        return overdueDays > 0 ? `${overdueDays}d overdue` : 'Overdue'
+      }
+      
       const hours = Math.floor(diff / (1000 * 60 * 60))
       const days = Math.floor(hours / 24)
       
@@ -182,9 +198,11 @@ export function SyncScheduler() {
       } else if (hours > 0) {
         return `${hours}h`
       } else {
-        return 'Soon'
+        const minutes = Math.floor(diff / (1000 * 60))
+        return minutes > 0 ? `${minutes}m` : 'Soon'
       }
-    } catch {
+    } catch (error) {
+      console.error('Error formatting time until next sync:', error)
       return 'Invalid date'
     }
   }
@@ -238,10 +256,23 @@ export function SyncScheduler() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {(() => {
-                  const nextSchedule = (schedules || [])
-                    .filter(s => s.enabled)
-                    .sort((a, b) => new Date(a.nextSync).getTime() - new Date(b.nextSync).getTime())[0]
-                  return nextSchedule ? formatTimeUntilNext(nextSchedule.nextSync) : 'None'
+                  const enabledSchedules = (schedules || []).filter(s => s.enabled)
+                  if (enabledSchedules.length === 0) return 'None'
+                  
+                  try {
+                    const nextSchedule = enabledSchedules
+                      .map(s => ({
+                        ...s,
+                        nextSyncDate: s.nextSync ? new Date(s.nextSync) : null
+                      }))
+                      .filter(s => s.nextSyncDate && !isNaN(s.nextSyncDate.getTime()))
+                      .sort((a, b) => a.nextSyncDate!.getTime() - b.nextSyncDate!.getTime())[0]
+                    
+                    return nextSchedule ? formatTimeUntilNext(nextSchedule.nextSync) : 'None'
+                  } catch (error) {
+                    console.error('Error calculating next sync:', error)
+                    return 'Error'
+                  }
                 })()}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -368,8 +399,13 @@ export function SyncScheduler() {
           <CardContent>
             <div className="space-y-3">
               {(schedules || [])
-                .filter(s => s.enabled)
-                .sort((a, b) => new Date(a.nextSync).getTime() - new Date(b.nextSync).getTime())
+                .filter(s => s.enabled && s.nextSync)
+                .map(s => ({
+                  ...s,
+                  nextSyncDate: s.nextSync ? new Date(s.nextSync) : null
+                }))
+                .filter(s => s.nextSyncDate && !isNaN(s.nextSyncDate.getTime()))
+                .sort((a, b) => a.nextSyncDate!.getTime() - b.nextSyncDate!.getTime())
                 .slice(0, 5)
                 .map((schedule, index) => (
                   <div
