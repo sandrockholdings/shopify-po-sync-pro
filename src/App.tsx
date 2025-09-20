@@ -38,6 +38,7 @@ import { BulkPOConfiguration } from './components/BulkPOConfiguration'
 import { QuickSync } from './components/QuickSync'
 import { NotificationsPanel } from './components/NotificationsPanel'
 import { ActiveSuppliers } from './components/ActiveSuppliers'
+import { AllPurchaseOrders } from './components/AllPurchaseOrders'
 import { useKV } from '@github/spark/hooks'
 import { safeFormatTime } from '@/lib/utils'
 import { notificationService } from '@/lib/notificationService'
@@ -56,6 +57,7 @@ function App() {
   const [showQuickSync, setShowQuickSync] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showActiveSuppliers, setShowActiveSuppliers] = useState(false)
+  const [showAllPurchaseOrders, setShowAllPurchaseOrders] = useState(false)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [notifications] = useKV<NotificationItem[]>('notifications', [
     {
@@ -303,7 +305,7 @@ function App() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           {/* Enhanced Tab Navigation */}
-          {!showActiveSuppliers && (
+          {!showActiveSuppliers && !showAllPurchaseOrders && (
             <div className="flex items-center justify-between">
               <TabsList className="grid grid-cols-4 lg:w-[700px] h-12 bg-muted/30 p-1">
                 <TabsTrigger 
@@ -365,7 +367,7 @@ function App() {
 
           {/* Enhanced Tab Content with Transitions */}
           <AnimatePresence mode="wait">
-            {!showActiveSuppliers ? (
+            {!showActiveSuppliers && !showAllPurchaseOrders ? (
               <>
                 <TabsContent value="dashboard" className="space-y-6 mt-6">
                   <motion.div
@@ -375,7 +377,10 @@ function App() {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <DashboardOverview onShowActiveSuppliers={() => setShowActiveSuppliers(true)} />
+                    <DashboardOverview 
+                      onShowActiveSuppliers={() => setShowActiveSuppliers(true)} 
+                      onShowAllPurchaseOrders={() => setShowAllPurchaseOrders(true)}
+                    />
                   </motion.div>
                 </TabsContent>
 
@@ -415,7 +420,7 @@ function App() {
                   </motion.div>
                 </TabsContent>
               </>
-            ) : (
+            ) : showActiveSuppliers ? (
               <motion.div
                 key="active-suppliers"
                 initial={{ opacity: 0, x: 20 }}
@@ -426,7 +431,18 @@ function App() {
               >
                 <ActiveSuppliers onBack={() => setShowActiveSuppliers(false)} />
               </motion.div>
-            )}
+            ) : showAllPurchaseOrders ? (
+              <motion.div
+                key="all-purchase-orders"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="mt-6"
+              >
+                <AllPurchaseOrders onBack={() => setShowAllPurchaseOrders(false)} />
+              </motion.div>
+            ) : null}
           </AnimatePresence>
         </Tabs>
       </div>

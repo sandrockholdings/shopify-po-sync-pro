@@ -67,9 +67,10 @@ const cardVariants = {
 
 interface DashboardOverviewProps {
   onShowActiveSuppliers?: () => void
+  onShowAllPurchaseOrders?: () => void
 }
 
-export function DashboardOverview({ onShowActiveSuppliers }: DashboardOverviewProps) {
+export function DashboardOverview({ onShowActiveSuppliers, onShowAllPurchaseOrders }: DashboardOverviewProps) {
   const [recentPOs] = useKV<POSummary[]>('recent-pos', [
     {
       id: 'PO-2024-001',
@@ -355,7 +356,7 @@ export function DashboardOverview({ onShowActiveSuppliers }: DashboardOverviewPr
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
-                  <Button size="sm">
+                  <Button size="sm" onClick={onShowAllPurchaseOrders}>
                     <Eye className="w-4 h-4 mr-2" />
                     View All
                   </Button>
