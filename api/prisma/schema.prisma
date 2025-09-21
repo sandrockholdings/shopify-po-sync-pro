@@ -1,0 +1,220 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Using Supabase Session Pooler (IPv4 compatible, recommended for Remix apps)
+  // Format: postgresql://postgres.PROJECT_ID:PASSWORD@aws-1-ca-central-1.pooler.supabase.com:5432/postgres
+}
+
+model Session {
+  id            String    @id @default(cuid())
+  shop          String    @unique
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Merchant relationship for proper isolation
+  merchantId    String
+  merchant      Merchant  @relation(fields: [merchantId], references: [id])
+  
+  @@index([shop])
+  @@index([merchantId])
+}
+
+model Merchant {
+  id            String   @id @default(cuid())
+  shopDomain    String   @unique
+  name          String
+  email         String?
+  phone         String?
+  address       String?
+  timezone      String?
+  currency      String   @default("USD")
+  plan          String   @default("basic")
+  status        String   @default("active") // active, suspended, cancelled
+  settings      Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relationships
+  sessions       Session[]
+  purchaseOrders PurchaseOrder[]
+  suppliers      Supplier[]
+  aiSettings     AISettings?
+  
+  @@index([shopDomain])
+  @@index([status])
+}
+
+model PurchaseOrder {
+  id                String      @id @default(cuid())
+  number            String      // PO number from document
+  supplierName      String      // Supplier name as appears on PO
+  orderDate         DateTime?
+  dueDate           DateTime?
+  totalAmount       Float
+  currency          String      @default("USD")
+  status            String      @default("pending") // pending, processing, completed, failed, review_needed
+  confidence        Float       @default(0.0)      // AI processing confidence (0-1)
+  rawData           Json?       // Original parsed data from document
+  processingNotes   String?     // AI processing notes
+  fileName          String?     // Original uploaded file name
+  fileSize          Int?        // File size in bytes
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Merchant relationship for RLS
+  merchantId        String
+  merchant          Merchant    @relation(fields: [merchantId], references: [id])
+  
+  // Supplier relationship (optional - may not match existing supplier)
+  supplierId        String?
+  supplier          Supplier?   @relation(fields: [supplierId], references: [id])
+  
+  // Line items
+  lineItems         POLineItem[]
+  
+  @@index([merchantId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([number])
+  @@unique([merchantId, number]) // Ensure unique PO numbers per merchant
+}
+
+model POLineItem {
+  id                String        @id @default(cuid())
+  sku               String        // Product SKU
+  productName       String        // Product name from PO
+  description       String?       // Additional description
+  quantity          Int           // Quantity ordered
+  unitCost          Float         // Unit cost from PO
+  totalCost         Float         // Total line cost (quantity * unitCost)
+  confidence        Float         @default(0.0) // AI confidence for this line item
+  status            String        @default("pending") // pending, matched, new, updated, error, review_needed
+  
+  // Shopify integration fields
+  shopifyProductId  String?       // Matched Shopify product ID
+  shopifyVariantId  String?       // Matched Shopify variant ID
+  
+  // Processing metadata
+  aiNotes           String?       // AI processing notes for this item
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Purchase Order relationship
+  purchaseOrderId   String
+  purchaseOrder     PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  
+  @@index([purchaseOrderId])
+  @@index([sku])
+  @@index([status])
+}
+
+model Supplier {
+  id                String   @id @default(cuid())
+  name              String
+  contactEmail      String?
+  contactPhone      String?
+  address           String?
+  website           String?
+  
+  // Supplier categorization
+  category          String?  // electronics, clothing, etc.
+  priority          String   @default("medium") // low, medium, high, critical
+  
+  // Connection settings for automation
+  connectionType    String   @default("manual") // manual, api, email, ftp
+  connectionConfig  Json     @default("{}") // API endpoints, auth settings, etc.
+  status            String   @default("active") // active, inactive, error
+  
+  // Sync settings
+  syncEnabled       Boolean  @default(false)
+  syncFrequency     String?  // every_15min, hourly, daily, weekly
+  syncTime          String?  // Time of day for scheduled syncs
+  lastSync          DateTime?
+  nextSync          DateTime?
+  
+  // Performance metrics
+  totalPOs          Int      @default(0)
+  averageAccuracy   Float?   // Average AI processing accuracy for this supplier
+  avgProcessingTime Int?     // Average processing time in seconds
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Merchant relationship for RLS
+  merchantId        String
+  merchant          Merchant @relation(fields: [merchantId], references: [id])
+  
+  // Purchase orders from this supplier
+  purchaseOrders    PurchaseOrder[]
+  
+  @@index([merchantId])
+  @@index([status])
+  @@index([name])
+  @@unique([merchantId, name]) // Ensure unique supplier names per merchant
+}
+
+model AISettings {
+  id                    String   @id @default(cuid())
+  
+  // AI Processing Settings
+  confidenceThreshold   Float    @default(0.8)        // Minimum confidence to auto-approve
+  autoApproveHigh       Boolean  @default(false)      // Auto-approve high confidence items
+  strictMatching        Boolean  @default(true)       // Strict product matching
+  learningMode          Boolean  @default(true)       // Enable learning from corrections
+  
+  // Supplier Automation
+  autoMatchSuppliers    Boolean  @default(true)       // Auto-match to existing suppliers
+  preferredVendors      String[] @default([])         // Preferred supplier names
+  
+  // AI Model Configuration
+  primaryModel          String   @default("gpt-4o-mini")  // Primary AI model
+  fallbackModel         String   @default("gpt-3.5-turbo") // Fallback model
+  maxRetries            Int      @default(3)              // Max retry attempts
+  
+  // Processing Features
+  enableOCR             Boolean  @default(true)       // Enable OCR for images/PDFs
+  enableNLP             Boolean  @default(true)       // Enable natural language processing
+  enableAutoMapping     Boolean  @default(true)       // Enable automatic field mapping
+  
+  // Custom Rules & Mappings
+  customRules           Json     @default("[]")       // Custom processing rules
+  fieldMappings         Json     @default("{}")       // Custom field mappings
+  pricingRules          Json     @default("{}")       // Pricing adjustment rules
+  
+  // Notification Preferences
+  notifyOnErrors        Boolean  @default(true)       // Notify on processing errors
+  notifyOnLowConfidence Boolean  @default(true)       // Notify on low confidence items
+  notifyOnNewSuppliers  Boolean  @default(true)       // Notify on new suppliers detected
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // One-to-one relationship with Merchant
+  merchantId            String   @unique
+  merchant              Merchant @relation(fields: [merchantId], references: [id])
+  
+  @@index([merchantId])
+}
